@@ -1,5 +1,5 @@
 // Bump CACHE when you change files so phones pick up the update.
-const CACHE = 'weekly-hours-v5';
+const CACHE = 'weekly-hours-v6';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (e) => {

@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Weekly hours</title>
-<meta name="theme-color" content="#2B59FF">
+<meta name="theme-color" content="#EEF1F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C1118" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -51,6 +52,8 @@
   .head{margin-bottom:22px}
   .row1{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
   .head h1{margin:0;font-size:34px;line-height:1;font-weight:800;letter-spacing:-.03em}
+  .today{margin:6px 0 0;font-size:15px;font-weight:600;color:var(--mute)}
+  .today:empty{display:none}
   .sum{text-align:right;line-height:1.1}
   .sum b{display:block;font-size:22px;font-weight:800;letter-spacing:-.01em}
   .sum small{font-size:13px;color:var(--mute)}
@@ -64,8 +67,8 @@
   /* cards */
   .card{
     --pc:var(--c0); --seg:var(--card);
-    background:var(--card);border:1px solid var(--line);border-radius:24px;
-    padding:18px 18px 16px;margin-bottom:14px;box-shadow:var(--shadow);
+    background:var(--card);border:1px solid var(--line);border-radius:20px;
+    padding:14px 16px 13px;margin-bottom:10px;box-shadow:var(--shadow);
   }
   .card.run{
     border-color:var(--pc);
@@ -74,28 +77,28 @@
   }
   .top{display:flex;align-items:center;gap:8px}
   .chip{width:12px;height:12px;border-radius:50%;background:var(--pc);flex:none}
-  .top h2{flex:1;min-width:0;margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .top h2{flex:1;min-width:0;margin:0;font-size:18px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ico{width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--mute);display:grid;place-items:center;flex:none}
   .ico svg{width:20px;height:20px}
-  .play{width:58px;height:58px;border-radius:50%;border:0;background:var(--pc);color:var(--on);display:grid;place-items:center;flex:none;transition:box-shadow .2s ease}
-  .play svg{width:22px;height:22px}
-  .card.run .play{background:var(--ink);color:var(--bg);box-shadow:0 0 0 6px color-mix(in srgb, var(--pc) 24%, transparent)}
+  .play{width:48px;height:48px;border-radius:50%;border:0;background:var(--pc);color:var(--on);display:grid;place-items:center;flex:none;transition:box-shadow .2s ease}
+  .play svg{width:20px;height:20px}
+  .card.run .play{background:var(--ink);color:var(--bg);box-shadow:0 0 0 5px color-mix(in srgb, var(--pc) 24%, transparent)}
 
-  .nums{display:flex;align-items:baseline;gap:8px;margin:8px 0 14px}
-  .tot{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1}
-  .goal{color:var(--mute);font-size:16px}
+  .nums{display:flex;align-items:baseline;gap:8px;margin:2px 0 10px}
+  .tot{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .goal{color:var(--mute);font-size:15px}
   .status{margin-left:auto;font-size:14px;font-weight:600;color:var(--mute);text-align:right}
   .card.done .status{color:var(--done)}
 
-  .bar{position:relative;height:22px;border-radius:11px;background:var(--track);overflow:hidden}
-  .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--pc);border-radius:11px;transition:width .3s ease}
+  .bar{position:relative;height:14px;border-radius:7px;background:var(--track);overflow:hidden}
+  .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--pc);border-radius:7px;transition:width .3s ease}
   .ticks{
     position:absolute;inset:0;pointer-events:none;
     background-image:linear-gradient(to right,transparent calc(100% - 2px),var(--seg) calc(100% - 2px));
     background-size:calc(100% * var(--step) / var(--goal)) 100%;
   }
 
-  .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;font-size:14px;color:var(--mute);min-height:22px}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:9px;font-size:13px;color:var(--mute);min-height:18px}
   .sess{display:none;align-items:center;gap:6px;color:var(--ink);font-weight:600}
   .card.run .sess{display:inline-flex}
   .dot{width:8px;height:8px;border-radius:50%;background:var(--pc);animation:pulse 1.6s ease-in-out infinite}
@@ -146,7 +149,7 @@
 <main>
   <header class="head">
     <div class="row1">
-      <h1 id="wkTitle">This week</h1>
+      <div><h1 id="wkTitle">This week</h1><p class="today" id="today"></p></div>
       <div class="sum"><b id="grand">0m</b><small>logged</small></div>
     </div>
     <div class="row2">
@@ -392,6 +395,7 @@
 
   function tick(){
     var now = Date.now();
+    $('today').textContent = weekOffset === 0 ? new Date(now).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }) : '';
     var ws = weekStart(weekOffset), we = weekEnd(ws);
     var grand = 0;
     S.projects.forEach(function(p){
