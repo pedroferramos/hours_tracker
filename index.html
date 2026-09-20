@@ -36,12 +36,13 @@
     --bg:#0C1118; --card:#151D28; --ink:#EAF0F6; --mute:#8B9BAD; --line:#243040; --track:#223041;
     --on:#0C1118; --done:#3CCB86; --danger:#FF7A75;
     --c0:#7C97FF; --c1:#3CCFC0; --c2:#A98BFF; --c3:#FFB43A; --c4:#FF7FA5; --c5:#5CBBF7;
-      --c6:#5FD375; --c7:#FF8A63; --c8:#D98BEA; --c9:#B6DE4B; --c10:#A3B2C2; --c11:#D9997A;
+    --c6:#5FD375; --c7:#FF8A63; --c8:#D98BEA; --c9:#B6DE4B; --c10:#A3B2C2; --c11:#D9997A;
     --shadow:none;
   }
   :root[data-theme="light"]{color-scheme:light}
   :root[data-theme="dark"]{color-scheme:dark}
   *,*::before,*::after{box-sizing:inherit}
+  [hidden]{display:none!important}
   html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
   body{
     margin:0; background:var(--bg); color:var(--ink);
@@ -103,11 +104,28 @@
     background-size:calc(100% * var(--step) / var(--goal)) 100%;
   }
 
-  .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:9px;font-size:13px;color:var(--mute);min-height:18px}
+  .foot{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:9px;font-size:13px;color:var(--mute);min-height:30px}
+  .foot .left{padding-bottom:1px}
   .sess{display:none;align-items:center;gap:6px;color:var(--ink);font-weight:600}
   .card.run .sess{display:inline-flex}
+  .card.run .avg{display:none}
   .dot{width:8px;height:8px;border-radius:50%;background:var(--pc);animation:pulse 1.6s ease-in-out infinite}
   @keyframes pulse{50%{opacity:.25}}
+
+  /* day-by-day strip */
+  .days{display:flex;gap:4px;align-items:flex-end;flex:none}
+  .dcol{display:flex;flex-direction:column;align-items:center;gap:2px;width:14px}
+  .dcol .b{display:flex;align-items:flex-end;width:8px;height:20px}
+  .dcol .b i{display:block;width:100%;height:3px;background:var(--pc);border-radius:3px}
+  .dcol.z .b i{background:var(--track)}
+  .dcol em{font-style:normal;font-size:9px;line-height:1;color:var(--mute)}
+  .dcol.td em{color:var(--ink);font-weight:800}
+  .dcol.fut{opacity:.45}
+
+  /* forgotten timer */
+  .warn{margin-top:10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb, var(--danger) 10%, var(--card));display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:600;color:var(--ink)}
+  .wbtn{display:flex;gap:8px}
+  .wbtn .chipbtn{height:36px}
 
   .empty{padding:36px 12px 16px;text-align:center;color:var(--mute)}
   .empty strong{display:block;color:var(--ink);font-size:22px;letter-spacing:-.01em;margin:22px 0 6px}
@@ -121,13 +139,21 @@
   .add{pointer-events:auto;display:inline-flex;align-items:center;gap:8px;height:54px;padding:0 24px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:600;box-shadow:0 10px 24px -10px rgba(0,0,0,.45)}
   .add svg{width:18px;height:18px}
 
-  /* dialog */
-  dialog{border:0;padding:0;border-radius:24px;background:var(--card);color:var(--ink);width:min(420px,calc(100% - 32px))}
+  /* toast */
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:10;
+    display:flex;align-items:center;gap:8px;max-width:calc(100% - 32px);padding:6px 6px 6px 16px;border-radius:14px;
+    background:var(--ink);color:var(--bg);font-size:14px;font-weight:600;box-shadow:0 10px 24px -10px rgba(0,0,0,.5)}
+  .toast button{border:0;background:transparent;font-weight:800;text-decoration:underline;padding:10px 12px}
+
+  /* dialogs */
+  dialog{border:0;padding:0;border-radius:24px;background:var(--card);color:var(--ink);width:min(420px,calc(100% - 32px));max-height:calc(100% - 32px);overflow:auto}
   dialog::backdrop{background:rgba(8,14,20,.55)}
   .sheet{padding:22px}
   .sheet h2{margin:0 0 6px;font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .sheet h3{margin:18px 0 4px;font-size:14px;font-weight:600;color:var(--mute)}
   .sheet label{display:block;font-size:14px;color:var(--mute);margin:14px 0 6px}
   .sheet input{width:100%;height:50px;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;padding:0 14px}
+  .sub{margin:0;color:var(--mute);font-size:14px}
   .sw{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;justify-items:center}
   .sw button{width:38px;height:38px;border-radius:50%;border:3px solid transparent;background:var(--sc);box-shadow:0 0 0 1px var(--line)}
   .sw button[aria-pressed="true"]{border-color:var(--card);box-shadow:0 0 0 3px var(--ink)}
@@ -142,6 +168,18 @@
   .btn.primary{background:var(--ink);color:var(--bg)}
   .btn.ghost{background:transparent;color:var(--ink)}
   .btn.danger{color:var(--danger)}
+
+  .more{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chipbtn{height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:transparent;font-weight:600;font-size:14px}
+  .chipbtn:disabled{opacity:.35;cursor:default}
+  .chipbtn.danger{color:var(--danger)}
+  .chipbtn.wide{width:100%;height:50px;border-radius:14px;text-align:left;padding:0 14px;font-size:16px;background:var(--bg)}
+
+  .rows{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:48px;padding:8px 14px;border:1px solid var(--line);border-radius:14px;background:var(--bg);text-align:left;font-size:14px}
+  .row .rr{font-weight:800;white-space:nowrap}
+  .arow{--pc:var(--c0);display:flex;align-items:center;gap:8px;margin:8px 0}
+  .arow .an{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
   @media (prefers-reduced-motion:reduce){
     .dot{animation:none}
@@ -183,6 +221,12 @@
   </button>
 </div>
 
+<div class="toast" id="toast" hidden role="status">
+  <span id="toastMsg"></span>
+  <button type="button" id="toastUndo">Undo</button>
+</div>
+
+<!-- Settings -->
 <dialog id="sdlg">
   <div class="sheet">
     <h2>Settings</h2>
@@ -201,13 +245,16 @@
         <button type="button" id="wMon" aria-pressed="false">Monday</button>
       </div>
     </div>
-    <div class="actions">
+    <label>Projects</label>
+    <button type="button" class="chipbtn wide" id="openArch">Archived &amp; deleted (<span id="archCount">0</span>)</button>
+    <div class="actions" style="margin-top:18px">
       <span class="sp"></span>
       <button type="button" class="btn primary" id="sClose">Done</button>
     </div>
   </div>
 </dialog>
 
+<!-- New / edit project -->
 <dialog id="dlg">
   <div class="sheet">
     <h2 id="dTitle">New project</h2>
@@ -227,12 +274,64 @@
         <input id="dMin" type="number" inputmode="numeric" min="0" step="5" placeholder="30">
       </div>
     </div>
+    <div class="more" id="dMore" hidden>
+      <button type="button" class="chipbtn" id="bSessions">Sessions</button>
+      <button type="button" class="chipbtn" id="bUp">▲ Up</button>
+      <button type="button" class="chipbtn" id="bDown">▼ Down</button>
+      <button type="button" class="chipbtn" id="bArchive">Archive</button>
+      <button type="button" class="chipbtn danger" id="bDelete">Delete</button>
+    </div>
     <p class="err" id="dErr" role="alert"></p>
     <div class="actions">
-      <button type="button" class="btn ghost danger" id="dDelete" hidden>Delete</button>
       <span class="sp"></span>
       <button type="button" class="btn ghost" id="dCancel">Cancel</button>
       <button type="button" class="btn primary" id="dSave">Save</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Sessions of a project for the viewed week -->
+<dialog id="ssdlg">
+  <div class="sheet">
+    <h2 id="ssTitle">Sessions</h2>
+    <p class="sub" id="ssSub"></p>
+    <div class="rows" id="ssList"></div>
+    <div class="actions">
+      <span class="sp"></span>
+      <button type="button" class="btn primary" id="ssClose">Done</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Edit one session -->
+<dialog id="edlg">
+  <div class="sheet">
+    <h2>Edit session</h2>
+    <div id="eTimes">
+      <label for="eStart">Start</label>
+      <input id="eStart" type="datetime-local">
+      <label for="eEnd">End</label>
+      <input id="eEnd" type="datetime-local">
+    </div>
+    <p class="sub" id="eNote" hidden></p>
+    <p class="err" id="eErr" role="alert"></p>
+    <div class="actions">
+      <button type="button" class="btn ghost danger" id="eDelete">Delete</button>
+      <span class="sp"></span>
+      <button type="button" class="btn ghost" id="eCancel">Cancel</button>
+      <button type="button" class="btn primary" id="eSave">Save</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Archived & deleted projects -->
+<dialog id="adlg">
+  <div class="sheet">
+    <h2>Archived &amp; deleted</h2>
+    <div id="aBody"></div>
+    <div class="actions" style="margin-top:14px">
+      <span class="sp"></span>
+      <button type="button" class="btn primary" id="aClose">Done</button>
     </div>
   </div>
 </dialog>
@@ -241,11 +340,13 @@
 (function(){
   var KEY = 'weekly-hours-v1';
   var NCOLORS = 12;
+  var WARN_MS = 4 * 36e5;                 // warn after 4 hours of running
   var S = { projects: [], entries: [], running: null, settings: { weekStart: 0, theme: 'auto' } };
   var weekOffset = 0;
+  var lastDay = new Date().toDateString();
 
   var $ = function(id){ return document.getElementById(id); };
-  var list = $('list'), dlg = $('dlg');
+  var list = $('list'), dlg = $('dlg'), sdlg = $('sdlg'), ssdlg = $('ssdlg'), edlg = $('edlg'), adlg = $('adlg');
 
   var ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
   var ICON_STOP = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
@@ -263,17 +364,22 @@
     var projects = Array.isArray(d.projects) ? d.projects.filter(function(p){ return p && p.id; }) : [];
     projects.forEach(function(p, i){
       if (typeof p.color !== 'number' || p.color < 0 || p.color >= NCOLORS) p.color = i % NCOLORS;
+      p.archived = !!p.archived;
+      p.deleted = !!p.deleted;
     });
     return {
       projects: projects,
       entries: Array.isArray(d.entries) ? d.entries : [],
-      running: d.running && d.running.p ? { p: d.running.p, s: d.running.s } : null,
+      running: d.running && d.running.p ? { p: d.running.p, s: d.running.s, ack: d.running.ack } : null,
       settings: {
         weekStart: d.settings && d.settings.weekStart === 1 ? 1 : 0,
         theme: d.settings && (d.settings.theme === 'light' || d.settings.theme === 'dark') ? d.settings.theme : 'auto'
       }
     };
   }
+
+  function active(){ return S.projects.filter(function(p){ return !p.archived && !p.deleted; }); }
+  function byId(id){ return S.projects.filter(function(x){ return x.id === id; })[0]; }
 
   /* ---------- time helpers (first day of the week is a setting: 0 = Sunday, 1 = Monday) ---------- */
   function weekStartOf(ts){
@@ -298,10 +404,16 @@
     if (h === 0) return m + 'm';
     return m === 0 ? h + 'h' : h + 'h ' + m + 'm';
   }
+  function fmtDur(ms){ return ms < 60000 ? '<1m' : fmtHM(ms / 60000); }
   function fmtClock(ms){
     var s = Math.max(0, Math.floor(ms / 1000));
     var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
     return h + ':' + String(m).padStart(2,'0') + ':' + String(r).padStart(2,'0');
+  }
+  function pad2(n){ return String(n).padStart(2, '0'); }
+  function toLocalInput(ts){
+    var d = new Date(ts);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + 'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
   }
   function totalMs(pid, ws, we, now){
     var t = 0;
@@ -348,7 +460,22 @@
     render();
   }
 
-  /* ---------- actions ---------- */
+  /* ---------- toast with undo ---------- */
+  var toastTimer = null, toastUndoFn = null;
+  function showToast(msg, undoFn){
+    $('toastMsg').textContent = msg;
+    toastUndoFn = undoFn;
+    $('toast').hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 7000);
+  }
+  function hideToast(){
+    $('toast').hidden = true;
+    toastUndoFn = null;
+    clearTimeout(toastTimer);
+  }
+
+  /* ---------- timer actions ---------- */
   function stopRunning(now){
     var r = S.running;
     if (!r) return;
@@ -370,15 +497,28 @@
     var a = new Date(ws), b = new Date(we - 864e5);
     return a.toLocaleDateString(undefined, opt) + ' – ' + b.toLocaleDateString(undefined, opt);
   }
+  function daysHtml(ws, cur, now){
+    var out = '', today = new Date(now).toDateString();
+    for (var i = 0; i < 7; i++){
+      var d = new Date(ws);
+      d.setDate(d.getDate() + i);
+      var isToday = cur && d.toDateString() === today;
+      var fut = cur && d.getTime() > now;
+      out += '<span class="dcol z' + (isToday ? ' td' : '') + (fut ? ' fut' : '') + '"><span class="b"><i></i></span><em>' +
+             d.toLocaleDateString(undefined, { weekday: 'narrow' }) + '</em></span>';
+    }
+    return out;
+  }
   function render(){
     var ws = weekStart(weekOffset), we = weekEnd(ws);
     var cur = weekOffset === 0;
     var now = Date.now();
+    var act = active();
     $('wkTitle').textContent = cur ? 'This week' : (weekOffset === -1 ? 'Last week' : 'Week of ' + new Date(ws).toLocaleDateString(undefined,{day:'numeric',month:'short'}));
     $('wkRange').textContent = rangeLabel(ws, we);
     $('next').disabled = weekOffset >= 0;
 
-    if (!S.projects.length){
+    if (!act.length){
       list.innerHTML =
         '<div class="empty">' +
           '<div class="bar" style="--goal:5;--step:1"><i class="fill" style="width:62%"></i><b class="ticks"></b></div>' +
@@ -386,7 +526,7 @@
           'Add a project, set its weekly goal, then start the timer while you work.' +
         '</div>';
     } else {
-      list.innerHTML = S.projects.map(function(p){
+      list.innerHTML = act.map(function(p){
         var gh = p.goalMin / 60;
         var step = gh <= 24 ? 1 : (gh <= 48 ? 2 : 5);
         var running = S.running && S.running.p === p.id;
@@ -402,19 +542,42 @@
           '</div>' +
           '<div class="nums"><span class="tot">0m</span><span class="goal">of ' + fmtHM(p.goalMin) + '</span><span class="status"></span></div>' +
           '<div class="bar"><i class="fill"></i><b class="ticks"></b></div>' +
-          '<div class="foot"><span class="avg">' + avgTxt + '</span><span class="sess"><i class="dot"></i><span class="clock">0:00:00</span></span></div>' +
+          '<div class="warn" hidden><span class="wtxt"></span><div class="wbtn"><button type="button" class="chipbtn" data-still>Still working</button><button type="button" class="chipbtn" data-toggle>Stop now</button></div></div>' +
+          '<div class="foot"><span class="left"><span class="avg">' + avgTxt + '</span><span class="sess"><i class="dot"></i><span class="clock">0:00:00</span></span></span><span class="days">' + daysHtml(ws, cur, now) + '</span></div>' +
         '</article>';
       }).join('');
     }
     tick();
   }
 
+  function paintDays(el, p, ws, now){
+    var cols = el.querySelectorAll('.dcol'), vals = [], max = 2 * 36e5, i;
+    for (i = 0; i < 7; i++){
+      var a = new Date(ws); a.setDate(a.getDate() + i);
+      var b = new Date(a);  b.setDate(b.getDate() + 1);
+      var v = totalMs(p.id, a.getTime(), b.getTime(), now);
+      vals.push(v);
+      if (v > max) max = v;
+    }
+    for (i = 0; i < 7; i++){
+      var c = cols[i];
+      if (!c) continue;
+      var zero = vals[i] < 60000;
+      c.classList.toggle('z', zero);
+      c.querySelector('i').style.height = zero ? '3px' : Math.max(3, vals[i] / max * 100) + '%';
+      c.title = fmtHM(vals[i] / 60000);
+    }
+  }
+
   function tick(){
     var now = Date.now();
-    $('today').textContent = weekOffset === 0 ? new Date(now).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }) : '';
+    var dk = new Date(now).toDateString();
+    if (dk !== lastDay){ lastDay = dk; render(); return; }      // new day: refresh week and "today"
+    var cur = weekOffset === 0;
+    $('today').textContent = cur ? new Date(now).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }) : '';
     var ws = weekStart(weekOffset), we = weekEnd(ws);
     var grand = 0;
-    S.projects.forEach(function(p){
+    active().forEach(function(p){
       var ms = totalMs(p.id, ws, we, now);
       grand += ms;
       var el = list.querySelector('[data-p="' + p.id + '"]');
@@ -425,15 +588,21 @@
       el.querySelector('.fill').style.width = Math.min(100, ms / (p.goalMin * 60000) * 100) + '%';
       el.classList.toggle('done', left <= 0);
       el.querySelector('.status').textContent = left > 0 ? fmtHM(left) + ' to go' : (left === 0 ? '✓ Goal reached' : '✓ ' + fmtHM(-left) + ' over');
-      if (S.running && S.running.p === p.id){
-        el.querySelector('.clock').textContent = fmtClock(now - S.running.s);
+      paintDays(el, p, ws, now);
+      var runningHere = S.running && S.running.p === p.id;
+      if (runningHere) el.querySelector('.clock').textContent = fmtClock(now - S.running.s);
+      var warn = el.querySelector('.warn');
+      if (warn){
+        var show = cur && runningHere && (now - (S.running.ack || S.running.s)) >= WARN_MS;
+        warn.hidden = !show;
+        if (show) el.querySelector('.wtxt').textContent = 'Timer has been running for ' + fmtHM((now - S.running.s) / 60000) + '. Forgot to stop it? You can fix the time under Sessions afterwards.';
       }
     });
     $('grand').textContent = fmtHM(Math.floor(grand / 60000));
   }
 
-  /* ---------- dialog ---------- */
-  var editing = null, adjSign = 1, delArmed = false, dColor = 0;
+  /* ---------- project dialog ---------- */
+  var editing = null, adjSign = 1, dColor = 0;
   function setSign(s){
     adjSign = s;
     $('sAdd').setAttribute('aria-pressed', s === 1 ? 'true' : 'false');
@@ -456,14 +625,19 @@
   }
   function nextColor(){
     var used = {};
-    S.projects.forEach(function(x){ used[x.color] = true; });
+    S.projects.forEach(function(x){ if (!x.deleted) used[x.color] = true; });
     for (var i = 0; i < NCOLORS; i++){ if (!used[i]) return i; }
-    return S.projects.length % NCOLORS;
+    return active().length % NCOLORS;
+  }
+  function paintMove(){
+    var act = active(), k = -1;
+    act.forEach(function(p, i){ if (p.id === editing) k = i; });
+    $('bUp').disabled = k <= 0;
+    $('bDown').disabled = k < 0 || k >= act.length - 1;
   }
   function openDlg(pid){
     editing = pid || null;
-    delArmed = false;
-    var p = pid ? S.projects.filter(function(x){ return x.id === pid; })[0] : null;
+    var p = pid ? byId(pid) : null;
     dColor = p ? p.color : nextColor();
     $('dTitle').textContent = p ? 'Edit project' : 'New project';
     $('dName').value = p ? p.name : '';
@@ -471,10 +645,10 @@
     $('dMin').value = '';
     $('dErr').textContent = '';
     $('dAdjust').hidden = !p;
-    $('dDelete').hidden = !p;
-    $('dDelete').textContent = 'Delete';
+    $('dMore').hidden = !p;
     setSign(1);
     buildSwatches();
+    if (p) paintMove();
     dlg.showModal();
     if (!p) $('dName').focus();
   }
@@ -486,7 +660,7 @@
     var goalMin = Math.round(g * 60);
     var pid = editing;
     if (pid){
-      var p = S.projects.filter(function(x){ return x.id === pid; })[0];
+      var p = byId(pid);
       if (p){ p.name = name; p.goalMin = goalMin; p.color = dColor; }
       var m = parseInt($('dMin').value, 10);
       if (m > 0){
@@ -494,26 +668,112 @@
         S.entries.push({ p: pid, s: weekOffset === 0 ? Date.now() : ws + 12 * 36e5, d: adjSign * m * 60000, m: 1 });
       }
     } else {
-      S.projects.push({ id: uid(), name: name, goalMin: goalMin, color: dColor });
+      S.projects.push({ id: uid(), name: name, goalMin: goalMin, color: dColor, archived: false, deleted: false });
     }
     dlg.close();
     commit();
   }
-  function deleteProject(){
-    if (!delArmed){
-      delArmed = true;
-      $('dDelete').textContent = 'Tap again to delete';
-      return;
-    }
-    S.projects = S.projects.filter(function(x){ return x.id !== editing; });
-    S.entries = S.entries.filter(function(e){ return e.p !== editing; });
-    if (S.running && S.running.p === editing) S.running = null;
+  function moveProject(dir){
+    var act = active(), k = -1;
+    act.forEach(function(p, i){ if (p.id === editing) k = i; });
+    var j = k + dir;
+    if (k < 0 || j < 0 || j >= act.length) return;
+    var i1 = S.projects.indexOf(act[k]), i2 = S.projects.indexOf(act[j]);
+    var tmp = S.projects[i1]; S.projects[i1] = S.projects[i2]; S.projects[i2] = tmp;
+    commit();
+    paintMove();
+  }
+  function retire(kind){
+    var p = byId(editing);
+    if (!p) return;
+    if (S.running && S.running.p === p.id) stopRunning(Date.now());
+    p[kind] = true;
+    if (kind === 'deleted') p.deletedAt = Date.now();
     dlg.close();
+    commit();
+    showToast(kind === 'deleted' ? 'Project deleted' : 'Project archived', function(){
+      p[kind] = false;
+      commit();
+    });
+  }
+
+  /* ---------- sessions ---------- */
+  var sessPid = null, sessList = [], editEntry = null;
+  function sessionsFor(pid){
+    var ws = weekStart(weekOffset), we = weekEnd(ws);
+    return S.entries.filter(function(e){
+      if (e.p !== pid) return false;
+      if (e.m) return e.s >= ws && e.s < we;
+      return e.s < we && e.s + e.d > ws;
+    }).sort(function(a, b){ return b.s - a.s; });
+  }
+  function fmtSession(e){
+    var dOpt = { weekday: 'short', day: 'numeric', month: 'short' };
+    var tOpt = { hour: '2-digit', minute: '2-digit' };
+    var a = new Date(e.s);
+    if (e.m) return { l: a.toLocaleDateString(undefined, dOpt) + ' · adjustment', r: (e.d < 0 ? '−' : '+') + fmtDur(Math.abs(e.d)) };
+    var b = new Date(e.s + e.d);
+    var same = a.toDateString() === b.toDateString();
+    return {
+      l: a.toLocaleDateString(undefined, dOpt) + ', ' + a.toLocaleTimeString(undefined, tOpt) + ' – ' +
+         (same ? '' : b.toLocaleDateString(undefined, dOpt) + ', ') + b.toLocaleTimeString(undefined, tOpt),
+      r: fmtDur(e.d)
+    };
+  }
+  function renderSessions(){
+    var p = byId(sessPid);
+    if (!p) return;
+    $('ssTitle').textContent = p.name;
+    var ws = weekStart(weekOffset);
+    $('ssSub').textContent = rangeLabel(ws, weekEnd(ws));
+    sessList = sessionsFor(sessPid);
+    $('ssList').innerHTML = sessList.length ? sessList.map(function(e, i){
+      var f = fmtSession(e);
+      return '<button type="button" class="row" data-i="' + i + '"><span>' + esc(f.l) + '</span><span class="rr">' + esc(f.r) + '</span></button>';
+    }).join('') : '<p class="sub">No sessions in this week.</p>';
+  }
+  function openSessions(pid){
+    sessPid = pid;
+    renderSessions();
+    ssdlg.showModal();
+  }
+  function openSessionEdit(e){
+    if (!e) return;
+    editEntry = e;
+    $('eErr').textContent = '';
+    if (e.m){
+      $('eTimes').hidden = true;
+      $('eSave').hidden = true;
+      $('eNote').hidden = false;
+      $('eNote').textContent = 'Manual adjustment of ' + (e.d < 0 ? '−' : '+') + fmtDur(Math.abs(e.d)) + '. You can delete it, or add a new one under Edit project.';
+    } else {
+      $('eTimes').hidden = false;
+      $('eSave').hidden = false;
+      $('eNote').hidden = true;
+      $('eStart').value = toLocalInput(e.s);
+      $('eEnd').value = toLocalInput(e.s + e.d);
+    }
+    edlg.showModal();
+  }
+  function saveSession(){
+    var st = new Date($('eStart').value).getTime();
+    var en = new Date($('eEnd').value).getTime();
+    if (isNaN(st) || isNaN(en)){ $('eErr').textContent = 'Set both a start and an end.'; return; }
+    if (en <= st){ $('eErr').textContent = 'The end must be after the start.'; return; }
+    if (en > Date.now() + 60000){ $('eErr').textContent = 'The end can’t be in the future.'; return; }
+    editEntry.s = st;
+    editEntry.d = en - st;
+    edlg.close();
+    commit();
+  }
+  function deleteSession(){
+    var i = S.entries.indexOf(editEntry);
+    if (i >= 0) S.entries.splice(i, 1);
+    edlg.close();
     commit();
   }
 
   /* ---------- settings ---------- */
-  var sdlg = $('sdlg');
   var themeMeta = $('themeMeta');
   var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
   function applyTheme(){
@@ -534,6 +794,7 @@
     $('tAuto').setAttribute('aria-pressed', S.settings.theme === 'auto' ? 'true' : 'false');
     $('wSun').setAttribute('aria-pressed', S.settings.weekStart === 0 ? 'true' : 'false');
     $('wMon').setAttribute('aria-pressed', S.settings.weekStart === 1 ? 'true' : 'false');
+    $('archCount').textContent = S.projects.filter(function(p){ return p.archived || p.deleted; }).length;
   }
   function setWeekStart(v){
     if (S.settings.weekStart === v) return;
@@ -541,6 +802,22 @@
     weekOffset = 0;
     paintSettings();
     commit();
+  }
+
+  /* ---------- archived & deleted ---------- */
+  function archRow(p, purge){
+    return '<div class="arow" style="--pc:var(--c' + p.color + ')"><i class="chip"></i><span class="an">' + esc(p.name) + '</span>' +
+      '<button type="button" class="chipbtn" data-restore="' + esc(p.id) + '">Restore</button>' +
+      (purge ? '<button type="button" class="chipbtn danger" data-purge="' + esc(p.id) + '">Remove</button>' : '') + '</div>';
+  }
+  function renderArch(){
+    var arch = S.projects.filter(function(p){ return p.archived && !p.deleted; });
+    var del = S.projects.filter(function(p){ return p.deleted; });
+    $('aBody').innerHTML =
+      '<h3>Archived</h3>' + (arch.length ? arch.map(function(p){ return archRow(p, false); }).join('') : '<p class="sub">Nothing archived.</p>') +
+      '<h3>Deleted</h3><p class="sub">Kept with their hours until you remove them. Remove deletes a project for good.</p>' +
+      (del.length ? del.map(function(p){ return archRow(p, true); }).join('') : '<p class="sub" style="margin-top:8px">Nothing deleted.</p>');
+    paintSettings();
   }
 
   /* ---------- events ---------- */
@@ -552,24 +829,67 @@
   $('wSun').addEventListener('click', function(){ setWeekStart(0); });
   $('wMon').addEventListener('click', function(){ setWeekStart(1); });
   $('sClose').addEventListener('click', function(){ sdlg.close(); });
-  sdlg.addEventListener('click', function(ev){ if (ev.target === sdlg) sdlg.close(); });
+  $('openArch').addEventListener('click', function(){ renderArch(); adlg.showModal(); });
+  $('aClose').addEventListener('click', function(){ adlg.close(); });
+  $('aBody').addEventListener('click', function(ev){
+    var r = ev.target.closest('[data-restore]'), x = ev.target.closest('[data-purge]');
+    if (r){
+      var p = byId(r.getAttribute('data-restore'));
+      if (p){ p.archived = false; p.deleted = false; save(); render(); renderArch(); }
+    } else if (x){
+      var q = byId(x.getAttribute('data-purge'));
+      if (q && window.confirm('Remove “' + q.name + '” and all of its logged hours for good?')){
+        S.projects = S.projects.filter(function(z){ return z.id !== q.id; });
+        S.entries = S.entries.filter(function(e){ return e.p !== q.id; });
+        save(); render(); renderArch();
+      }
+    }
+  });
+
   list.addEventListener('click', function(ev){
     var card = ev.target.closest('[data-p]');
     if (!card) return;
     var pid = card.getAttribute('data-p');
-    if (ev.target.closest('[data-toggle]')) toggle(pid);
+    if (ev.target.closest('[data-still]')){
+      if (S.running && S.running.p === pid){ S.running.ack = Date.now(); save(); tick(); }
+    } else if (ev.target.closest('[data-toggle]')) toggle(pid);
     else if (ev.target.closest('[data-edit]')) openDlg(pid);
   });
   $('addBtn').addEventListener('click', function(){ openDlg(null); });
   $('prev').addEventListener('click', function(){ weekOffset -= 1; render(); });
   $('next').addEventListener('click', function(){ if (weekOffset < 0){ weekOffset += 1; render(); } });
+
   $('sAdd').addEventListener('click', function(){ setSign(1); });
   $('sRem').addEventListener('click', function(){ setSign(-1); });
   $('dSave').addEventListener('click', saveDlg);
   $('dCancel').addEventListener('click', function(){ dlg.close(); });
-  $('dDelete').addEventListener('click', deleteProject);
-  dlg.addEventListener('click', function(ev){ if (ev.target === dlg) dlg.close(); });
+  $('bSessions').addEventListener('click', function(){ if (editing) openSessions(editing); });
+  $('bUp').addEventListener('click', function(){ moveProject(-1); });
+  $('bDown').addEventListener('click', function(){ moveProject(1); });
+  $('bArchive').addEventListener('click', function(){ retire('archived'); });
+  $('bDelete').addEventListener('click', function(){ retire('deleted'); });
   $('dName').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') saveDlg(); });
+
+  $('ssList').addEventListener('click', function(ev){
+    var b = ev.target.closest('[data-i]');
+    if (b) openSessionEdit(sessList[parseInt(b.getAttribute('data-i'), 10)]);
+  });
+  $('ssClose').addEventListener('click', function(){ ssdlg.close(); });
+  $('eSave').addEventListener('click', saveSession);
+  $('eDelete').addEventListener('click', deleteSession);
+  $('eCancel').addEventListener('click', function(){ edlg.close(); });
+  edlg.addEventListener('close', renderSessions);
+
+  [sdlg, dlg, ssdlg, edlg, adlg].forEach(function(d){
+    d.addEventListener('click', function(ev){ if (ev.target === d) d.close(); });
+  });
+
+  $('toastUndo').addEventListener('click', function(){
+    var fn = toastUndoFn;
+    hideToast();
+    if (fn) fn();
+  });
+
   document.addEventListener('visibilitychange', tick);
   setInterval(tick, 1000);
 
