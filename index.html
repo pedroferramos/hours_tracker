@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weekly hours</title>
+<meta name="theme-color" content="#2B59FF">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EDF1F5; --card:#FFFFFF; --ink:#13202C; --mute:#66768A; --line:#D6DFE8;
+    --track:#E1E8EF; --accent:#2B59FF; --accent-ink:#FFFFFF; --done:#0E9F5B; --danger:#C9302C;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E141B; --card:#17202A; --ink:#EAF0F6; --mute:#8FA0B1; --line:#263341;
+      --track:#243140; --accent:#6C8BFF; --accent-ink:#0E141B; --done:#3CCB86; --danger:#FF7A75;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E141B; --card:#17202A; --ink:#EAF0F6; --mute:#8FA0B1; --line:#263341;
+    --track:#243140; --accent:#6C8BFF; --accent-ink:#0E141B; --done:#3CCB86; --danger:#FF7A75;
+  }
+  *,*::before,*::after{box-sizing:inherit}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:400 16px/1.4 'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased;
+  }
+  main{max-width:520px;margin:0 auto;padding:20px 16px 48px}
+  button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+  .head{display:flex;align-items:center;gap:6px;margin-bottom:20px}
+  .head .ttl{flex:1;min-width:0;padding-left:6px}
+  .head h1{margin:0;font-size:26px;line-height:1.1;font-weight:800;letter-spacing:-.02em}
+  .head .rng{margin:2px 0 0;color:var(--mute);font-size:14px}
+  .head .sum{text-align:right;font-weight:600;font-size:18px;white-space:nowrap}
+  .head .sum small{display:block;font-weight:400;font-size:13px;color:var(--mute)}
+  .nav{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none}
+  .nav:disabled{opacity:.35;cursor:default}
+  .nav svg{width:18px;height:18px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 16px 14px;margin-bottom:14px}
+  .card.run{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .top{display:flex;align-items:center;gap:6px}
+  .top h2{flex:1;min-width:0;margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ico{width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--mute);display:grid;place-items:center;flex:none}
+  .ico svg{width:20px;height:20px}
+  .play{width:56px;height:56px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+  .play svg{width:22px;height:22px}
+  .card.run .play{background:var(--ink);color:var(--bg)}
+
+  .nums{display:flex;align-items:baseline;gap:8px;margin:6px 0 12px}
+  .tot{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .goal{color:var(--mute);font-size:16px}
+
+  .bar{position:relative;height:20px;border-radius:10px;background:var(--track);overflow:hidden}
+  .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent);transition:width .3s ease}
+  .ticks{
+    position:absolute;inset:0;pointer-events:none;
+    background-image:linear-gradient(to right,transparent calc(100% - 2px),var(--card) calc(100% - 2px));
+    background-size:calc(100% * var(--step) / var(--goal)) 100%;
+  }
+  .card.done .fill{background:var(--done)}
+
+  .foot{display:flex;justify-content:space-between;gap:12px;margin-top:10px;font-size:14px;color:var(--mute);min-height:20px}
+  .card.done .left{color:var(--done);font-weight:600}
+  .sess{display:none;align-items:center;gap:6px;color:var(--ink)}
+  .card.run .sess{display:inline-flex}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.25}}
+
+  .add{width:100%;min-height:54px;border:1.5px dashed var(--line);border-radius:18px;background:transparent;font-weight:600;color:var(--mute)}
+  .empty{padding:28px 8px 24px;text-align:center;color:var(--mute)}
+  .empty strong{display:block;color:var(--ink);font-size:20px;margin-bottom:6px}
+
+  dialog{border:0;padding:0;border-radius:20px;background:var(--card);color:var(--ink);width:min(420px,calc(100% - 32px))}
+  dialog::backdrop{background:rgba(8,14,20,.55)}
+  .sheet{padding:20px}
+  .sheet h2{margin:0 0 14px;font-size:22px;font-weight:800}
+  .sheet label{display:block;font-size:14px;color:var(--mute);margin:12px 0 6px}
+  .sheet input{width:100%;height:48px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;padding:0 12px}
+  .adj{display:flex;gap:8px}
+  .adj .seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;flex:none}
+  .adj .seg button{height:48px;padding:0 14px;border:0;background:transparent;color:var(--mute);font-weight:600}
+  .adj .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+  .err{min-height:20px;margin:10px 0 0;font-size:14px;color:var(--danger)}
+  .actions{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .actions .sp{flex:1}
+  .btn{height:48px;padding:0 18px;border-radius:12px;border:0;font-weight:600}
+  .btn.primary{background:var(--accent);color:var(--accent-ink)}
+  .btn.ghost{background:transparent;color:var(--ink)}
+  .btn.danger{color:var(--danger)}
+
+  @media (prefers-reduced-motion:reduce){
+    .dot{animation:none}
+    .fill{transition:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="head">
+    <button class="nav" id="prev" aria-label="Previous week">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="ttl">
+      <h1 id="wkTitle">This week</h1>
+      <p class="rng" id="wkRange"></p>
+    </div>
+    <div class="sum"><span id="grand">0m</span><small>logged</small></div>
+    <button class="nav" id="next" aria-label="Next week">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </header>
+
+  <section id="list"></section>
+  <button class="add" id="addBtn">Add project</button>
+</main>
+
+<dialog id="dlg">
+  <div class="sheet">
+    <h2 id="dTitle">New project</h2>
+    <label for="dName">Name</label>
+    <input id="dName" maxlength="40" autocomplete="off">
+    <label for="dGoal">Weekly goal in hours</label>
+    <input id="dGoal" type="number" inputmode="decimal" min="0.5" max="168" step="0.5">
+    <div id="dAdjust" hidden>
+      <label for="dMin">Fix logged time (minutes)</label>
+      <div class="adj">
+        <div class="seg" role="group" aria-label="Add or remove">
+          <button type="button" id="sAdd" aria-pressed="true">Add</button>
+          <button type="button" id="sRem" aria-pressed="false">Remove</button>
+        </div>
+        <input id="dMin" type="number" inputmode="numeric" min="0" step="5" placeholder="30">
+      </div>
+    </div>
+    <p class="err" id="dErr" role="alert"></p>
+    <div class="actions">
+      <button type="button" class="btn ghost danger" id="dDelete" hidden>Delete</button>
+      <span class="sp"></span>
+      <button type="button" class="btn ghost" id="dCancel">Cancel</button>
+      <button type="button" class="btn primary" id="dSave">Save</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  var KEY = 'weekly-hours-v1';
+  var S = { projects: [], entries: [], running: null };
+  var weekOffset = 0;
+  var docRef = null, writing = false, dirty = false, touched = false;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var list = $('list'), dlg = $('dlg');
+
+  var ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
+  var ICON_STOP = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+  var ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/></svg>';
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function uid(){ return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  function norm(d){
+    d = d || {};
+    return {
+      projects: Array.isArray(d.projects) ? d.projects.filter(function(p){ return p && p.id; }) : [],
+      entries: Array.isArray(d.entries) ? d.entries : [],
+      running: d.running && d.running.p ? { p: d.running.p, s: d.running.s } : null
+    };
+  }
+
+  /* ---------- time helpers ---------- */
+  function weekStart(offset){
+    var d = new Date();
+    d.setHours(0,0,0,0);
+    var day = d.getDay();                      // Sunday = 0
+    d.setDate(d.getDate() - day + offset * 7);
+    return d.getTime();
+  }
+  function weekEnd(ws){
+    var d = new Date(ws);
+    d.setDate(d.getDate() + 7);
+    return d.getTime();
+  }
+  function fmtHM(mins){
+    mins = Math.max(0, Math.floor(mins));
+    var h = Math.floor(mins / 60), m = mins % 60;
+    if (h === 0) return m + 'm';
+    return m === 0 ? h + 'h' : h + 'h ' + m + 'm';
+  }
+  function fmtClock(ms){
+    var s = Math.max(0, Math.floor(ms / 1000));
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+    return h + ':' + String(m).padStart(2,'0') + ':' + String(r).padStart(2,'0');
+  }
+  function totalMs(pid, ws, we, now){
+    var t = 0;
+    S.entries.forEach(function(e){
+      if (e.p !== pid) return;
+      if (e.m){
+        if (e.s >= ws && e.s < we) t += e.d;
+      } else {
+        var a = Math.max(e.s, ws), b = Math.min(e.s + e.d, we);
+        if (b > a) t += b - a;
+      }
+    });
+    if (S.running && S.running.p === pid){
+      var a2 = Math.max(S.running.s, ws), b2 = Math.min(now, we);
+      if (b2 > a2) t += b2 - a2;
+    }
+    return Math.max(0, t);
+  }
+
+  /* ---------- persistence ---------- */
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+    dirty = true;
+    pump();
+  }
+  async function pump(){
+    if (writing || !docRef) return;
+    writing = true;
+    try {
+      while (dirty){
+        dirty = false;
+        await docRef.set(JSON.parse(JSON.stringify(S)));
+      }
+    } catch (e) {
+      console.error('Save failed', e);
+    } finally {
+      writing = false;
+    }
+  }
+  function commit(){
+    touched = true;
+    save();
+    render();
+  }
+
+  /* ---------- actions ---------- */
+  function stopRunning(now){
+    var r = S.running;
+    if (!r) return;
+    var d = now - r.s;
+    if (d >= 1000) S.entries.push({ p: r.p, s: r.s, d: d });
+    S.running = null;
+  }
+  function toggle(pid){
+    var now = Date.now();
+    var same = S.running && S.running.p === pid;
+    stopRunning(now);
+    if (!same) S.running = { p: pid, s: now };
+    commit();
+  }
+
+  /* ---------- render ---------- */
+  function rangeLabel(ws, we){
+    var opt = { day: 'numeric', month: 'short' };
+    var a = new Date(ws), b = new Date(we - 864e5);
+    return a.toLocaleDateString(undefined, opt) + ' – ' + b.toLocaleDateString(undefined, opt);
+  }
+  function render(){
+    var ws = weekStart(weekOffset), we = weekEnd(ws);
+    var cur = weekOffset === 0;
+    $('wkTitle').textContent = cur ? 'This week' : (weekOffset === -1 ? 'Last week' : 'Week of ' + new Date(ws).toLocaleDateString(undefined,{day:'numeric',month:'short'}));
+    $('wkRange').textContent = rangeLabel(ws, we);
+    $('next').disabled = weekOffset >= 0;
+
+    if (!S.projects.length){
+      list.innerHTML = '<div class="empty"><strong>No projects yet</strong>Add a project, set its weekly goal, then start the timer while you work.</div>';
+    } else {
+      list.innerHTML = S.projects.map(function(p){
+        var gh = p.goalMin / 60;
+        var step = gh <= 24 ? 1 : (gh <= 48 ? 2 : 5);
+        var running = S.running && S.running.p === p.id;
+        return '' +
+        '<article class="card' + (running ? ' run' : '') + '" data-p="' + esc(p.id) + '" style="--goal:' + gh + ';--step:' + step + '">' +
+          '<div class="top">' +
+            '<h2>' + esc(p.name) + '</h2>' +
+            '<button class="ico" data-edit aria-label="Edit ' + esc(p.name) + '">' + ICON_EDIT + '</button>' +
+            (cur ? '<button class="play" data-toggle aria-label="' + (running ? 'Stop timer for ' : 'Start timer for ') + esc(p.name) + '">' + (running ? ICON_STOP : ICON_PLAY) + '</button>' : '') +
+          '</div>' +
+          '<div class="nums"><span class="tot">0m</span><span class="goal">of ' + fmtHM(p.goalMin) + '</span></div>' +
+          '<div class="bar"><i class="fill"></i><b class="ticks"></b></div>' +
+          '<div class="foot"><span class="left"></span><span class="sess"><i class="dot"></i><span class="clock">0:00:00</span></span></div>' +
+        '</article>';
+      }).join('');
+    }
+    tick();
+  }
+
+  function tick(){
+    var now = Date.now();
+    var ws = weekStart(weekOffset), we = weekEnd(ws);
+    var grand = 0;
+    S.projects.forEach(function(p){
+      var ms = totalMs(p.id, ws, we, now);
+      grand += ms;
+      var el = list.querySelector('[data-p="' + p.id + '"]');
+      if (!el) return;
+      var mins = Math.floor(ms / 60000);
+      var left = p.goalMin - mins;
+      el.querySelector('.tot').textContent = fmtHM(mins);
+      el.querySelector('.fill').style.width = Math.min(100, ms / (p.goalMin * 60000) * 100) + '%';
+      el.classList.toggle('done', left <= 0);
+      el.querySelector('.left').textContent = left > 0 ? fmtHM(left) + ' to go' : (left === 0 ? 'Goal reached' : fmtHM(-left) + ' over goal');
+      if (S.running && S.running.p === p.id){
+        el.querySelector('.clock').textContent = fmtClock(now - S.running.s);
+      }
+    });
+    $('grand').textContent = fmtHM(Math.floor(grand / 60000));
+  }
+
+  /* ---------- dialog ---------- */
+  var editing = null, adjSign = 1, delArmed = false;
+  function setSign(s){
+    adjSign = s;
+    $('sAdd').setAttribute('aria-pressed', s === 1 ? 'true' : 'false');
+    $('sRem').setAttribute('aria-pressed', s === -1 ? 'true' : 'false');
+  }
+  function openDlg(pid){
+    editing = pid || null;
+    delArmed = false;
+    var p = pid ? S.projects.filter(function(x){ return x.id === pid; })[0] : null;
+    $('dTitle').textContent = p ? 'Edit project' : 'New project';
+    $('dName').value = p ? p.name : '';
+    $('dGoal').value = p ? String(p.goalMin / 60) : '10';
+    $('dMin').value = '';
+    $('dErr').textContent = '';
+    $('dAdjust').hidden = !p;
+    $('dDelete').hidden = !p;
+    $('dDelete').textContent = 'Delete';
+    setSign(1);
+    dlg.showModal();
+    if (!p) $('dName').focus();
+  }
+  function saveDlg(){
+    var name = $('dName').value.trim();
+    var g = parseFloat(String($('dGoal').value).replace(',', '.'));
+    if (!name){ $('dErr').textContent = 'Enter a project name.'; return; }
+    if (!(g > 0 && g <= 168)){ $('dErr').textContent = 'Set a goal between 0.5 and 168 hours.'; return; }
+    var goalMin = Math.round(g * 60);
+    var pid = editing;
+    if (pid){
+      var p = S.projects.filter(function(x){ return x.id === pid; })[0];
+      if (p){ p.name = name; p.goalMin = goalMin; }
+      var m = parseInt($('dMin').value, 10);
+      if (m > 0){
+        var ws = weekStart(weekOffset);
+        S.entries.push({ p: pid, s: weekOffset === 0 ? Date.now() : ws + 12 * 36e5, d: adjSign * m * 60000, m: 1 });
+      }
+    } else {
+      S.projects.push({ id: uid(), name: name, goalMin: goalMin });
+    }
+    dlg.close();
+    commit();
+  }
+  function deleteProject(){
+    if (!delArmed){
+      delArmed = true;
+      $('dDelete').textContent = 'Tap again to delete';
+      return;
+    }
+    S.projects = S.projects.filter(function(x){ return x.id !== editing; });
+    S.entries = S.entries.filter(function(e){ return e.p !== editing; });
+    if (S.running && S.running.p === editing) S.running = null;
+    dlg.close();
+    commit();
+  }
+
+  /* ---------- events ---------- */
+  list.addEventListener('click', function(ev){
+    var card = ev.target.closest('[data-p]');
+    if (!card) return;
+    var pid = card.getAttribute('data-p');
+    if (ev.target.closest('[data-toggle]')) toggle(pid);
+    else if (ev.target.closest('[data-edit]')) openDlg(pid);
+  });
+  $('addBtn').addEventListener('click', function(){ openDlg(null); });
+  $('prev').addEventListener('click', function(){ weekOffset -= 1; render(); });
+  $('next').addEventListener('click', function(){ if (weekOffset < 0){ weekOffset += 1; render(); } });
+  $('sAdd').addEventListener('click', function(){ setSign(1); });
+  $('sRem').addEventListener('click', function(){ setSign(-1); });
+  $('dSave').addEventListener('click', saveDlg);
+  $('dCancel').addEventListener('click', function(){ dlg.close(); });
+  $('dDelete').addEventListener('click', deleteProject);
+  dlg.addEventListener('click', function(ev){ if (ev.target === dlg) dlg.close(); });
+  $('dName').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') saveDlg(); });
+  document.addEventListener('visibilitychange', tick);
+  setInterval(tick, 1000);
+
+  /* ---------- boot ---------- */
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) S = norm(JSON.parse(raw));
+  } catch (e) {}
+  render();
+
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

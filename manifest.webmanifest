@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Weekly hours",
+  "short_name": "Hours",
+  "description": "Track hours per project against a weekly goal.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDF1F5",
+  "theme_color": "#2B59FF",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
