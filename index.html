@@ -13,21 +13,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#EDF1F5; --card:#FFFFFF; --ink:#13202C; --mute:#66768A; --line:#D6DFE8;
-    --track:#E1E8EF; --accent:#2B59FF; --accent-ink:#FFFFFF; --done:#0E9F5B; --danger:#C9302C;
+    --bg:#EEF1F6; --card:#FFFFFF; --ink:#111C2A; --mute:#64748B; --line:#DDE4EC; --track:#E6EBF2;
+    --on:#FFFFFF; --done:#0E9F5B; --danger:#C9302C;
+    --c0:#2B59FF; --c1:#0B9C8F; --c2:#7B4DFF; --c3:#C96F00; --c4:#E0366B; --c5:#1B8FD6;
+    --shadow:0 1px 2px rgba(17,28,42,.05),0 10px 26px -14px rgba(17,28,42,.22);
     box-sizing:border-box;
     padding-top:env(safe-area-inset-top,0px);
     padding-bottom:env(safe-area-inset-bottom,0px);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#0E141B; --card:#17202A; --ink:#EAF0F6; --mute:#8FA0B1; --line:#263341;
-      --track:#243140; --accent:#6C8BFF; --accent-ink:#0E141B; --done:#3CCB86; --danger:#FF7A75;
+      --bg:#0C1118; --card:#151D28; --ink:#EAF0F6; --mute:#8B9BAD; --line:#243040; --track:#223041;
+      --on:#0C1118; --done:#3CCB86; --danger:#FF7A75;
+      --c0:#7C97FF; --c1:#3CCFC0; --c2:#A98BFF; --c3:#FFB43A; --c4:#FF7FA5; --c5:#5CBBF7;
+      --shadow:none;
     }
   }
   :root[data-theme="dark"]{
-    --bg:#0E141B; --card:#17202A; --ink:#EAF0F6; --mute:#8FA0B1; --line:#263341;
-    --track:#243140; --accent:#6C8BFF; --accent-ink:#0E141B; --done:#3CCB86; --danger:#FF7A75;
+    --bg:#0C1118; --card:#151D28; --ink:#EAF0F6; --mute:#8B9BAD; --line:#243040; --track:#223041;
+    --on:#0C1118; --done:#3CCB86; --danger:#FF7A75;
+    --c0:#7C97FF; --c1:#3CCFC0; --c2:#A98BFF; --c3:#FFB43A; --c4:#FF7FA5; --c5:#5CBBF7;
+    --shadow:none;
   }
   *,*::before,*::after{box-sizing:inherit}
   html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
@@ -36,97 +42,132 @@
     font:400 16px/1.4 'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
     font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased;
   }
-  main{max-width:520px;margin:0 auto;padding:20px 16px 48px}
+  main{max-width:520px;margin:0 auto;padding:22px 16px 120px}
   button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  button:active{transform:scale(.97)}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--c0);outline-offset:2px}
 
-  .head{display:flex;align-items:center;gap:6px;margin-bottom:20px}
-  .head .ttl{flex:1;min-width:0;padding-left:6px}
-  .head h1{margin:0;font-size:26px;line-height:1.1;font-weight:800;letter-spacing:-.02em}
-  .head .rng{margin:2px 0 0;color:var(--mute);font-size:14px}
-  .head .sum{text-align:right;font-weight:600;font-size:18px;white-space:nowrap}
-  .head .sum small{display:block;font-weight:400;font-size:13px;color:var(--mute)}
-  .nav{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none}
-  .nav:disabled{opacity:.35;cursor:default}
+  /* header */
+  .head{margin-bottom:22px}
+  .row1{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+  .head h1{margin:0;font-size:34px;line-height:1;font-weight:800;letter-spacing:-.03em}
+  .sum{text-align:right;line-height:1.1}
+  .sum b{display:block;font-size:22px;font-weight:800;letter-spacing:-.01em}
+  .sum small{font-size:13px;color:var(--mute)}
+  .pill{display:inline-flex;align-items:center;margin-top:14px;border:1px solid var(--line);background:var(--card);border-radius:999px;box-shadow:var(--shadow)}
+  .pill .rng{padding:0 6px;font-size:15px;font-weight:600;min-width:150px;text-align:center}
+  .nav{width:44px;height:44px;border:0;background:transparent;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
+  .nav:disabled{opacity:.3;cursor:default}
   .nav svg{width:18px;height:18px}
 
-  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 16px 14px;margin-bottom:14px}
-  .card.run{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
-  .top{display:flex;align-items:center;gap:6px}
+  /* cards */
+  .card{
+    --pc:var(--c0); --seg:var(--card);
+    background:var(--card);border:1px solid var(--line);border-radius:24px;
+    padding:18px 18px 16px;margin-bottom:14px;box-shadow:var(--shadow);
+  }
+  .card.run{
+    border-color:var(--pc);
+    background:color-mix(in srgb, var(--pc) 7%, var(--card));
+    --seg:color-mix(in srgb, var(--pc) 7%, var(--card));
+  }
+  .top{display:flex;align-items:center;gap:8px}
+  .chip{width:12px;height:12px;border-radius:50%;background:var(--pc);flex:none}
   .top h2{flex:1;min-width:0;margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ico{width:44px;height:44px;border-radius:50%;border:0;background:transparent;color:var(--mute);display:grid;place-items:center;flex:none}
   .ico svg{width:20px;height:20px}
-  .play{width:56px;height:56px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+  .play{width:58px;height:58px;border-radius:50%;border:0;background:var(--pc);color:var(--on);display:grid;place-items:center;flex:none;transition:box-shadow .2s ease}
   .play svg{width:22px;height:22px}
-  .card.run .play{background:var(--ink);color:var(--bg)}
+  .card.run .play{background:var(--ink);color:var(--bg);box-shadow:0 0 0 6px color-mix(in srgb, var(--pc) 24%, transparent)}
 
-  .nums{display:flex;align-items:baseline;gap:8px;margin:6px 0 12px}
-  .tot{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .nums{display:flex;align-items:baseline;gap:8px;margin:8px 0 14px}
+  .tot{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1}
   .goal{color:var(--mute);font-size:16px}
+  .status{margin-left:auto;font-size:14px;font-weight:600;color:var(--mute);text-align:right}
+  .card.done .status{color:var(--done)}
 
-  .bar{position:relative;height:20px;border-radius:10px;background:var(--track);overflow:hidden}
-  .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent);transition:width .3s ease}
+  .bar{position:relative;height:22px;border-radius:11px;background:var(--track);overflow:hidden}
+  .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--pc);border-radius:11px;transition:width .3s ease}
   .ticks{
     position:absolute;inset:0;pointer-events:none;
-    background-image:linear-gradient(to right,transparent calc(100% - 2px),var(--card) calc(100% - 2px));
+    background-image:linear-gradient(to right,transparent calc(100% - 2px),var(--seg) calc(100% - 2px));
     background-size:calc(100% * var(--step) / var(--goal)) 100%;
   }
-  .card.done .fill{background:var(--done)}
 
-  .foot{display:flex;justify-content:space-between;gap:12px;margin-top:10px;font-size:14px;color:var(--mute);min-height:20px}
-  .card.done .left{color:var(--done);font-weight:600}
-  .sess{display:none;align-items:center;gap:6px;color:var(--ink)}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;font-size:14px;color:var(--mute);min-height:22px}
+  .sess{display:none;align-items:center;gap:6px;color:var(--ink);font-weight:600}
   .card.run .sess{display:inline-flex}
-  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.6s ease-in-out infinite}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--pc);animation:pulse 1.6s ease-in-out infinite}
   @keyframes pulse{50%{opacity:.25}}
 
-  .add{width:100%;min-height:54px;border:1.5px dashed var(--line);border-radius:18px;background:transparent;font-weight:600;color:var(--mute)}
-  .empty{padding:28px 8px 24px;text-align:center;color:var(--mute)}
-  .empty strong{display:block;color:var(--ink);font-size:20px;margin-bottom:6px}
+  .empty{padding:36px 12px 16px;text-align:center;color:var(--mute)}
+  .empty strong{display:block;color:var(--ink);font-size:22px;letter-spacing:-.01em;margin:22px 0 6px}
+  .empty .bar{max-width:220px;margin:0 auto;height:26px;border-radius:13px;--seg:var(--bg)}
+  .empty .fill{background:var(--c0);border-radius:13px}
 
-  dialog{border:0;padding:0;border-radius:20px;background:var(--card);color:var(--ink);width:min(420px,calc(100% - 32px))}
+  /* add button */
+  .dock{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;pointer-events:none;
+    padding:28px 16px calc(14px + env(safe-area-inset-bottom,0px));
+    background:linear-gradient(to top,var(--bg) 55%,transparent)}
+  .add{pointer-events:auto;display:inline-flex;align-items:center;gap:8px;height:54px;padding:0 24px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:600;box-shadow:0 10px 24px -10px rgba(0,0,0,.45)}
+  .add svg{width:18px;height:18px}
+
+  /* dialog */
+  dialog{border:0;padding:0;border-radius:24px;background:var(--card);color:var(--ink);width:min(420px,calc(100% - 32px))}
   dialog::backdrop{background:rgba(8,14,20,.55)}
-  .sheet{padding:20px}
-  .sheet h2{margin:0 0 14px;font-size:22px;font-weight:800}
-  .sheet label{display:block;font-size:14px;color:var(--mute);margin:12px 0 6px}
-  .sheet input{width:100%;height:48px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;padding:0 12px}
+  .sheet{padding:22px}
+  .sheet h2{margin:0 0 6px;font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .sheet label{display:block;font-size:14px;color:var(--mute);margin:14px 0 6px}
+  .sheet input{width:100%;height:50px;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;padding:0 14px}
+  .sw{display:flex;gap:10px;flex-wrap:wrap}
+  .sw button{width:38px;height:38px;border-radius:50%;border:3px solid transparent;background:var(--sc);box-shadow:0 0 0 1px var(--line)}
+  .sw button[aria-pressed="true"]{border-color:var(--card);box-shadow:0 0 0 3px var(--ink)}
   .adj{display:flex;gap:8px}
-  .adj .seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;flex:none}
-  .adj .seg button{height:48px;padding:0 14px;border:0;background:transparent;color:var(--mute);font-weight:600}
+  .adj .seg{display:flex;border:1px solid var(--line);border-radius:14px;overflow:hidden;flex:none}
+  .adj .seg button{height:50px;padding:0 14px;border:0;background:transparent;color:var(--mute);font-weight:600}
   .adj .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
   .err{min-height:20px;margin:10px 0 0;font-size:14px;color:var(--danger)}
   .actions{display:flex;align-items:center;gap:8px;margin-top:6px}
   .actions .sp{flex:1}
-  .btn{height:48px;padding:0 18px;border-radius:12px;border:0;font-weight:600}
-  .btn.primary{background:var(--accent);color:var(--accent-ink)}
+  .btn{height:50px;padding:0 20px;border-radius:14px;border:0;font-weight:600}
+  .btn.primary{background:var(--ink);color:var(--bg)}
   .btn.ghost{background:transparent;color:var(--ink)}
   .btn.danger{color:var(--danger)}
 
   @media (prefers-reduced-motion:reduce){
     .dot{animation:none}
-    .fill{transition:none}
+    .fill,.play{transition:none}
+    button:active{transform:none}
   }
 </style>
 </head>
 <body>
 <main>
   <header class="head">
-    <button class="nav" id="prev" aria-label="Previous week">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-    </button>
-    <div class="ttl">
+    <div class="row1">
       <h1 id="wkTitle">This week</h1>
-      <p class="rng" id="wkRange"></p>
+      <div class="sum"><b id="grand">0m</b><small>logged</small></div>
     </div>
-    <div class="sum"><span id="grand">0m</span><small>logged</small></div>
-    <button class="nav" id="next" aria-label="Next week">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
-    </button>
+    <div class="pill">
+      <button class="nav" id="prev" aria-label="Previous week">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="rng" id="wkRange"></span>
+      <button class="nav" id="next" aria-label="Next week">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
   </header>
 
   <section id="list"></section>
-  <button class="add" id="addBtn">Add project</button>
 </main>
+
+<div class="dock">
+  <button class="add" id="addBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Add project
+  </button>
+</div>
 
 <dialog id="dlg">
   <div class="sheet">
@@ -135,6 +176,8 @@
     <input id="dName" maxlength="40" autocomplete="off">
     <label for="dGoal">Weekly goal in hours</label>
     <input id="dGoal" type="number" inputmode="decimal" min="0.5" max="168" step="0.5">
+    <label>Color</label>
+    <div class="sw" id="dColors"></div>
     <div id="dAdjust" hidden>
       <label for="dMin">Fix logged time (minutes)</label>
       <div class="adj">
@@ -158,9 +201,9 @@
 <script>
 (function(){
   var KEY = 'weekly-hours-v1';
+  var NCOLORS = 6;
   var S = { projects: [], entries: [], running: null };
   var weekOffset = 0;
-  var docRef = null, writing = false, dirty = false, touched = false;
 
   var $ = function(id){ return document.getElementById(id); };
   var list = $('list'), dlg = $('dlg');
@@ -178,19 +221,27 @@
 
   function norm(d){
     d = d || {};
+    var projects = Array.isArray(d.projects) ? d.projects.filter(function(p){ return p && p.id; }) : [];
+    projects.forEach(function(p, i){
+      if (typeof p.color !== 'number' || p.color < 0 || p.color >= NCOLORS) p.color = i % NCOLORS;
+    });
     return {
-      projects: Array.isArray(d.projects) ? d.projects.filter(function(p){ return p && p.id; }) : [],
+      projects: projects,
       entries: Array.isArray(d.entries) ? d.entries : [],
       running: d.running && d.running.p ? { p: d.running.p, s: d.running.s } : null
     };
   }
 
-  /* ---------- time helpers ---------- */
-  function weekStart(offset){
-    var d = new Date();
+  /* ---------- time helpers (weeks run Sunday to Saturday) ---------- */
+  function weekStartOf(ts){
+    var d = new Date(ts);
     d.setHours(0,0,0,0);
-    var day = d.getDay();                      // Sunday = 0
-    d.setDate(d.getDate() - day + offset * 7);
+    d.setDate(d.getDate() - d.getDay());        // Sunday = 0
+    return d.getTime();
+  }
+  function weekStart(offset){
+    var d = new Date(weekStartOf(Date.now()));
+    d.setDate(d.getDate() + offset * 7);
     return d.getTime();
   }
   function weekEnd(ws){
@@ -226,29 +277,30 @@
     }
     return Math.max(0, t);
   }
+  // Average per week over finished weeks, from the week of the first logged time.
+  // Weeks with no work between then and now count as zero. The current week is excluded.
+  function avgMs(pid, now){
+    var first = null;
+    S.entries.forEach(function(e){
+      if (e.p === pid && (first === null || e.s < first)) first = e.s;
+    });
+    if (S.running && S.running.p === pid && (first === null || S.running.s < first)) first = S.running.s;
+    if (first === null) return null;
+    var cur = weekStart(0), w = weekStartOf(first), n = 0, sum = 0;
+    while (w < cur){
+      var e2 = weekEnd(w);
+      sum += totalMs(pid, w, e2, now);
+      n += 1;
+      w = e2;
+    }
+    return n ? sum / n : null;
+  }
 
   /* ---------- persistence ---------- */
   function save(){
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
-    dirty = true;
-    pump();
-  }
-  async function pump(){
-    if (writing || !docRef) return;
-    writing = true;
-    try {
-      while (dirty){
-        dirty = false;
-        await docRef.set(JSON.parse(JSON.stringify(S)));
-      }
-    } catch (e) {
-      console.error('Save failed', e);
-    } finally {
-      writing = false;
-    }
   }
   function commit(){
-    touched = true;
     save();
     render();
   }
@@ -278,27 +330,36 @@
   function render(){
     var ws = weekStart(weekOffset), we = weekEnd(ws);
     var cur = weekOffset === 0;
+    var now = Date.now();
     $('wkTitle').textContent = cur ? 'This week' : (weekOffset === -1 ? 'Last week' : 'Week of ' + new Date(ws).toLocaleDateString(undefined,{day:'numeric',month:'short'}));
     $('wkRange').textContent = rangeLabel(ws, we);
     $('next').disabled = weekOffset >= 0;
 
     if (!S.projects.length){
-      list.innerHTML = '<div class="empty"><strong>No projects yet</strong>Add a project, set its weekly goal, then start the timer while you work.</div>';
+      list.innerHTML =
+        '<div class="empty">' +
+          '<div class="bar" style="--goal:5;--step:1"><i class="fill" style="width:62%"></i><b class="ticks"></b></div>' +
+          '<strong>No projects yet</strong>' +
+          'Add a project, set its weekly goal, then start the timer while you work.' +
+        '</div>';
     } else {
       list.innerHTML = S.projects.map(function(p){
         var gh = p.goalMin / 60;
         var step = gh <= 24 ? 1 : (gh <= 48 ? 2 : 5);
         var running = S.running && S.running.p === p.id;
+        var avg = avgMs(p.id, now);
+        var avgTxt = avg === null ? 'No weekly average yet' : 'Avg ' + fmtHM(avg / 60000) + ' / week';
         return '' +
-        '<article class="card' + (running ? ' run' : '') + '" data-p="' + esc(p.id) + '" style="--goal:' + gh + ';--step:' + step + '">' +
+        '<article class="card' + (running ? ' run' : '') + '" data-p="' + esc(p.id) + '" style="--pc:var(--c' + p.color + ');--goal:' + gh + ';--step:' + step + '">' +
           '<div class="top">' +
+            '<i class="chip"></i>' +
             '<h2>' + esc(p.name) + '</h2>' +
             '<button class="ico" data-edit aria-label="Edit ' + esc(p.name) + '">' + ICON_EDIT + '</button>' +
             (cur ? '<button class="play" data-toggle aria-label="' + (running ? 'Stop timer for ' : 'Start timer for ') + esc(p.name) + '">' + (running ? ICON_STOP : ICON_PLAY) + '</button>' : '') +
           '</div>' +
-          '<div class="nums"><span class="tot">0m</span><span class="goal">of ' + fmtHM(p.goalMin) + '</span></div>' +
+          '<div class="nums"><span class="tot">0m</span><span class="goal">of ' + fmtHM(p.goalMin) + '</span><span class="status"></span></div>' +
           '<div class="bar"><i class="fill"></i><b class="ticks"></b></div>' +
-          '<div class="foot"><span class="left"></span><span class="sess"><i class="dot"></i><span class="clock">0:00:00</span></span></div>' +
+          '<div class="foot"><span class="avg">' + avgTxt + '</span><span class="sess"><i class="dot"></i><span class="clock">0:00:00</span></span></div>' +
         '</article>';
       }).join('');
     }
@@ -319,7 +380,7 @@
       el.querySelector('.tot').textContent = fmtHM(mins);
       el.querySelector('.fill').style.width = Math.min(100, ms / (p.goalMin * 60000) * 100) + '%';
       el.classList.toggle('done', left <= 0);
-      el.querySelector('.left').textContent = left > 0 ? fmtHM(left) + ' to go' : (left === 0 ? 'Goal reached' : fmtHM(-left) + ' over goal');
+      el.querySelector('.status').textContent = left > 0 ? fmtHM(left) + ' to go' : (left === 0 ? '✓ Goal reached' : '✓ ' + fmtHM(-left) + ' over');
       if (S.running && S.running.p === p.id){
         el.querySelector('.clock').textContent = fmtClock(now - S.running.s);
       }
@@ -328,16 +389,32 @@
   }
 
   /* ---------- dialog ---------- */
-  var editing = null, adjSign = 1, delArmed = false;
+  var editing = null, adjSign = 1, delArmed = false, dColor = 0;
   function setSign(s){
     adjSign = s;
     $('sAdd').setAttribute('aria-pressed', s === 1 ? 'true' : 'false');
     $('sRem').setAttribute('aria-pressed', s === -1 ? 'true' : 'false');
   }
+  function buildSwatches(){
+    var box = $('dColors');
+    box.innerHTML = '';
+    for (var i = 0; i < NCOLORS; i++){
+      (function(i){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.style.setProperty('--sc', 'var(--c' + i + ')');
+        b.setAttribute('aria-label', 'Color ' + (i + 1));
+        b.setAttribute('aria-pressed', i === dColor ? 'true' : 'false');
+        b.addEventListener('click', function(){ dColor = i; buildSwatches(); });
+        box.appendChild(b);
+      })(i);
+    }
+  }
   function openDlg(pid){
     editing = pid || null;
     delArmed = false;
     var p = pid ? S.projects.filter(function(x){ return x.id === pid; })[0] : null;
+    dColor = p ? p.color : S.projects.length % NCOLORS;
     $('dTitle').textContent = p ? 'Edit project' : 'New project';
     $('dName').value = p ? p.name : '';
     $('dGoal').value = p ? String(p.goalMin / 60) : '10';
@@ -347,6 +424,7 @@
     $('dDelete').hidden = !p;
     $('dDelete').textContent = 'Delete';
     setSign(1);
+    buildSwatches();
     dlg.showModal();
     if (!p) $('dName').focus();
   }
@@ -359,14 +437,14 @@
     var pid = editing;
     if (pid){
       var p = S.projects.filter(function(x){ return x.id === pid; })[0];
-      if (p){ p.name = name; p.goalMin = goalMin; }
+      if (p){ p.name = name; p.goalMin = goalMin; p.color = dColor; }
       var m = parseInt($('dMin').value, 10);
       if (m > 0){
         var ws = weekStart(weekOffset);
         S.entries.push({ p: pid, s: weekOffset === 0 ? Date.now() : ws + 12 * 36e5, d: adjSign * m * 60000, m: 1 });
       }
     } else {
-      S.projects.push({ id: uid(), name: name, goalMin: goalMin });
+      S.projects.push({ id: uid(), name: name, goalMin: goalMin, color: dColor });
     }
     dlg.close();
     commit();
@@ -411,7 +489,6 @@
     if (raw) S = norm(JSON.parse(raw));
   } catch (e) {}
   render();
-
 })();
 </script>
 <script>
