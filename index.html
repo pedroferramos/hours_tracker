@@ -54,7 +54,8 @@
   .sum{text-align:right;line-height:1.1}
   .sum b{display:block;font-size:22px;font-weight:800;letter-spacing:-.01em}
   .sum small{font-size:13px;color:var(--mute)}
-  .pill{display:inline-flex;align-items:center;margin-top:14px;border:1px solid var(--line);background:var(--card);border-radius:999px;box-shadow:var(--shadow)}
+  .row2{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px}
+  .pill{display:inline-flex;align-items:center;border:1px solid var(--line);background:var(--card);border-radius:999px;box-shadow:var(--shadow)}
   .pill .rng{padding:0 6px;font-size:15px;font-weight:600;min-width:150px;text-align:center}
   .nav{width:44px;height:44px;border:0;background:transparent;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
   .nav:disabled{opacity:.3;cursor:default}
@@ -148,6 +149,7 @@
       <h1 id="wkTitle">This week</h1>
       <div class="sum"><b id="grand">0m</b><small>logged</small></div>
     </div>
+    <div class="row2">
     <div class="pill">
       <button class="nav" id="prev" aria-label="Previous week">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
@@ -156,6 +158,10 @@
       <button class="nav" id="next" aria-label="Next week">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
       </button>
+    </div>
+    <button class="ico" id="setBtn" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+    </button>
     </div>
   </header>
 
@@ -168,6 +174,23 @@
     Add project
   </button>
 </div>
+
+<dialog id="sdlg">
+  <div class="sheet">
+    <h2>Settings</h2>
+    <label>Week starts on</label>
+    <div class="adj">
+      <div class="seg" role="group" aria-label="First day of the week">
+        <button type="button" id="wSun" aria-pressed="true">Sunday</button>
+        <button type="button" id="wMon" aria-pressed="false">Monday</button>
+      </div>
+    </div>
+    <div class="actions">
+      <span class="sp"></span>
+      <button type="button" class="btn primary" id="sClose">Done</button>
+    </div>
+  </div>
+</dialog>
 
 <dialog id="dlg">
   <div class="sheet">
@@ -202,7 +225,7 @@
 (function(){
   var KEY = 'weekly-hours-v1';
   var NCOLORS = 6;
-  var S = { projects: [], entries: [], running: null };
+  var S = { projects: [], entries: [], running: null, settings: { weekStart: 0 } };
   var weekOffset = 0;
 
   var $ = function(id){ return document.getElementById(id); };
@@ -228,15 +251,16 @@
     return {
       projects: projects,
       entries: Array.isArray(d.entries) ? d.entries : [],
-      running: d.running && d.running.p ? { p: d.running.p, s: d.running.s } : null
+      running: d.running && d.running.p ? { p: d.running.p, s: d.running.s } : null,
+      settings: { weekStart: d.settings && d.settings.weekStart === 1 ? 1 : 0 }
     };
   }
 
-  /* ---------- time helpers (weeks run Sunday to Saturday) ---------- */
+  /* ---------- time helpers (first day of the week is a setting: 0 = Sunday, 1 = Monday) ---------- */
   function weekStartOf(ts){
     var d = new Date(ts);
     d.setHours(0,0,0,0);
-    d.setDate(d.getDate() - d.getDay());        // Sunday = 0
+    d.setDate(d.getDate() - ((d.getDay() - S.settings.weekStart + 7) % 7));
     return d.getTime();
   }
   function weekStart(offset){
@@ -462,7 +486,26 @@
     commit();
   }
 
+  /* ---------- settings ---------- */
+  var sdlg = $('sdlg');
+  function paintSettings(){
+    $('wSun').setAttribute('aria-pressed', S.settings.weekStart === 0 ? 'true' : 'false');
+    $('wMon').setAttribute('aria-pressed', S.settings.weekStart === 1 ? 'true' : 'false');
+  }
+  function setWeekStart(v){
+    if (S.settings.weekStart === v) return;
+    S.settings.weekStart = v;
+    weekOffset = 0;
+    paintSettings();
+    commit();
+  }
+
   /* ---------- events ---------- */
+  $('setBtn').addEventListener('click', function(){ paintSettings(); sdlg.showModal(); });
+  $('wSun').addEventListener('click', function(){ setWeekStart(0); });
+  $('wMon').addEventListener('click', function(){ setWeekStart(1); });
+  $('sClose').addEventListener('click', function(){ sdlg.close(); });
+  sdlg.addEventListener('click', function(ev){ if (ev.target === sdlg) sdlg.close(); });
   list.addEventListener('click', function(ev){
     var card = ev.target.closest('[data-p]');
     if (!card) return;
