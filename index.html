@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Weekly hours</title>
-<meta name="theme-color" content="#EEF1F6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0C1118" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" id="themeMeta" content="#EEF1F6">
+<script>try{var __s=JSON.parse(localStorage.getItem("weekly-hours-v1")||"{}").settings;if(__s&&(__s.theme==="light"||__s.theme==="dark"))document.documentElement.setAttribute("data-theme",__s.theme)}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -17,6 +17,7 @@
     --bg:#EEF1F6; --card:#FFFFFF; --ink:#111C2A; --mute:#64748B; --line:#DDE4EC; --track:#E6EBF2;
     --on:#FFFFFF; --done:#0E9F5B; --danger:#C9302C;
     --c0:#2B59FF; --c1:#0B9C8F; --c2:#7B4DFF; --c3:#C96F00; --c4:#E0366B; --c5:#1B8FD6;
+    --c6:#2E9E44; --c7:#E4572E; --c8:#B23FC9; --c9:#6E9410; --c10:#5B6B7C; --c11:#9A5B3C;
     --shadow:0 1px 2px rgba(17,28,42,.05),0 10px 26px -14px rgba(17,28,42,.22);
     box-sizing:border-box;
     padding-top:env(safe-area-inset-top,0px);
@@ -27,6 +28,7 @@
       --bg:#0C1118; --card:#151D28; --ink:#EAF0F6; --mute:#8B9BAD; --line:#243040; --track:#223041;
       --on:#0C1118; --done:#3CCB86; --danger:#FF7A75;
       --c0:#7C97FF; --c1:#3CCFC0; --c2:#A98BFF; --c3:#FFB43A; --c4:#FF7FA5; --c5:#5CBBF7;
+      --c6:#5FD375; --c7:#FF8A63; --c8:#D98BEA; --c9:#B6DE4B; --c10:#A3B2C2; --c11:#D9997A;
       --shadow:none;
     }
   }
@@ -34,8 +36,11 @@
     --bg:#0C1118; --card:#151D28; --ink:#EAF0F6; --mute:#8B9BAD; --line:#243040; --track:#223041;
     --on:#0C1118; --done:#3CCB86; --danger:#FF7A75;
     --c0:#7C97FF; --c1:#3CCFC0; --c2:#A98BFF; --c3:#FFB43A; --c4:#FF7FA5; --c5:#5CBBF7;
+      --c6:#5FD375; --c7:#FF8A63; --c8:#D98BEA; --c9:#B6DE4B; --c10:#A3B2C2; --c11:#D9997A;
     --shadow:none;
   }
+  :root[data-theme="light"]{color-scheme:light}
+  :root[data-theme="dark"]{color-scheme:dark}
   *,*::before,*::after{box-sizing:inherit}
   html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
   body{
@@ -123,7 +128,7 @@
   .sheet h2{margin:0 0 6px;font-size:24px;font-weight:800;letter-spacing:-.02em}
   .sheet label{display:block;font-size:14px;color:var(--mute);margin:14px 0 6px}
   .sheet input{width:100%;height:50px;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;padding:0 14px}
-  .sw{display:flex;gap:10px;flex-wrap:wrap}
+  .sw{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;justify-items:center}
   .sw button{width:38px;height:38px;border-radius:50%;border:3px solid transparent;background:var(--sc);box-shadow:0 0 0 1px var(--line)}
   .sw button[aria-pressed="true"]{border-color:var(--card);box-shadow:0 0 0 3px var(--ink)}
   .adj{display:flex;gap:8px}
@@ -181,6 +186,14 @@
 <dialog id="sdlg">
   <div class="sheet">
     <h2>Settings</h2>
+    <label>Appearance</label>
+    <div class="adj">
+      <div class="seg" role="group" aria-label="Color mode">
+        <button type="button" id="tLight" aria-pressed="false">Light</button>
+        <button type="button" id="tDark" aria-pressed="false">Dark</button>
+        <button type="button" id="tAuto" aria-pressed="true">Device</button>
+      </div>
+    </div>
     <label>Week starts on</label>
     <div class="adj">
       <div class="seg" role="group" aria-label="First day of the week">
@@ -227,8 +240,8 @@
 <script>
 (function(){
   var KEY = 'weekly-hours-v1';
-  var NCOLORS = 6;
-  var S = { projects: [], entries: [], running: null, settings: { weekStart: 0 } };
+  var NCOLORS = 12;
+  var S = { projects: [], entries: [], running: null, settings: { weekStart: 0, theme: 'auto' } };
   var weekOffset = 0;
 
   var $ = function(id){ return document.getElementById(id); };
@@ -255,7 +268,10 @@
       projects: projects,
       entries: Array.isArray(d.entries) ? d.entries : [],
       running: d.running && d.running.p ? { p: d.running.p, s: d.running.s } : null,
-      settings: { weekStart: d.settings && d.settings.weekStart === 1 ? 1 : 0 }
+      settings: {
+        weekStart: d.settings && d.settings.weekStart === 1 ? 1 : 0,
+        theme: d.settings && (d.settings.theme === 'light' || d.settings.theme === 'dark') ? d.settings.theme : 'auto'
+      }
     };
   }
 
@@ -438,11 +454,17 @@
       })(i);
     }
   }
+  function nextColor(){
+    var used = {};
+    S.projects.forEach(function(x){ used[x.color] = true; });
+    for (var i = 0; i < NCOLORS; i++){ if (!used[i]) return i; }
+    return S.projects.length % NCOLORS;
+  }
   function openDlg(pid){
     editing = pid || null;
     delArmed = false;
     var p = pid ? S.projects.filter(function(x){ return x.id === pid; })[0] : null;
-    dColor = p ? p.color : S.projects.length % NCOLORS;
+    dColor = p ? p.color : nextColor();
     $('dTitle').textContent = p ? 'Edit project' : 'New project';
     $('dName').value = p ? p.name : '';
     $('dGoal').value = p ? String(p.goalMin / 60) : '10';
@@ -492,7 +514,24 @@
 
   /* ---------- settings ---------- */
   var sdlg = $('sdlg');
+  var themeMeta = $('themeMeta');
+  var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function applyTheme(){
+    var t = S.settings.theme, root = document.documentElement;
+    if (t === 'light' || t === 'dark') root.setAttribute('data-theme', t); else root.removeAttribute('data-theme');
+    var dark = t === 'dark' || (t === 'auto' && mq && mq.matches);
+    themeMeta.setAttribute('content', dark ? '#0C1118' : '#EEF1F6');
+  }
+  function setTheme(v){
+    S.settings.theme = v;
+    applyTheme();
+    paintSettings();
+    save();
+  }
   function paintSettings(){
+    $('tLight').setAttribute('aria-pressed', S.settings.theme === 'light' ? 'true' : 'false');
+    $('tDark').setAttribute('aria-pressed', S.settings.theme === 'dark' ? 'true' : 'false');
+    $('tAuto').setAttribute('aria-pressed', S.settings.theme === 'auto' ? 'true' : 'false');
     $('wSun').setAttribute('aria-pressed', S.settings.weekStart === 0 ? 'true' : 'false');
     $('wMon').setAttribute('aria-pressed', S.settings.weekStart === 1 ? 'true' : 'false');
   }
@@ -506,6 +545,10 @@
 
   /* ---------- events ---------- */
   $('setBtn').addEventListener('click', function(){ paintSettings(); sdlg.showModal(); });
+  $('tLight').addEventListener('click', function(){ setTheme('light'); });
+  $('tDark').addEventListener('click', function(){ setTheme('dark'); });
+  $('tAuto').addEventListener('click', function(){ setTheme('auto'); });
+  if (mq && mq.addEventListener) mq.addEventListener('change', applyTheme);
   $('wSun').addEventListener('click', function(){ setWeekStart(0); });
   $('wMon').addEventListener('click', function(){ setWeekStart(1); });
   $('sClose').addEventListener('click', function(){ sdlg.close(); });
@@ -535,6 +578,7 @@
     var raw = localStorage.getItem(KEY);
     if (raw) S = norm(JSON.parse(raw));
   } catch (e) {}
+  applyTheme();
   render();
 })();
 </script>
