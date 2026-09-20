@@ -76,6 +76,9 @@
     background:var(--card);border:1px solid var(--line);border-radius:20px;
     padding:14px 16px 13px;margin-bottom:10px;box-shadow:var(--shadow);
   }
+  .card{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .card.shift{transition:transform .18s ease}
+  .card.drag{position:relative;z-index:5;transition:none;cursor:grabbing;box-shadow:0 18px 36px -12px rgba(0,0,0,.4)}
   .card.run{
     border-color:var(--pc);
     background:color-mix(in srgb, var(--pc) 7%, var(--card));
@@ -183,7 +186,7 @@
 
   @media (prefers-reduced-motion:reduce){
     .dot{animation:none}
-    .fill,.play{transition:none}
+    .fill,.play,.card.shift{transition:none}
     button:active{transform:none}
   }
 </style>
@@ -510,6 +513,8 @@
     return out;
   }
   function render(){
+    if (drag) endDrag(false);
+    cancelHold();
     var ws = weekStart(weekOffset), we = weekEnd(ws);
     var cur = weekOffset === 0;
     var now = Date.now();
@@ -572,7 +577,7 @@
   function tick(){
     var now = Date.now();
     var dk = new Date(now).toDateString();
-    if (dk !== lastDay){ lastDay = dk; render(); return; }      // new day: refresh week and "today"
+    if (dk !== lastDay && !drag){ lastDay = dk; render(); return; }      // new day: refresh week and "today"
     var cur = weekOffset === 0;
     $('today').textContent = cur ? new Date(now).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }) : '';
     var ws = weekStart(weekOffset), we = weekEnd(ws);
@@ -889,6 +894,99 @@
     hideToast();
     if (fn) fn();
   });
+
+  /* ---------- hold a card, then drag it to reorder ---------- */
+  var HOLD_MS = 380, hold = null, drag = null, suppressUntil = 0, rafId = 0, lastY = 0;
+
+  function cancelHold(){
+    if (hold){ clearTimeout(hold.timer); hold = null; }
+  }
+  function endDrag(commitIt){
+    if (!drag) return;
+    var d = drag;
+    cancelAnimationFrame(rafId);
+    d.cards.forEach(function(c){ c.style.transform = ''; c.classList.remove('drag', 'shift'); });
+    drag = null;
+    suppressUntil = Date.now() + 350;
+    if (commitIt && d.t !== d.i){
+      var ids = d.ids.slice();
+      ids.splice(d.t, 0, ids.splice(d.i, 1)[0]);
+      var slots = [], map = {};
+      S.projects.forEach(function(p, k){
+        if (!p.archived && !p.deleted){ slots.push(k); map[p.id] = p; }
+      });
+      ids.forEach(function(id, k){ if (map[id]) S.projects[slots[k]] = map[id]; });
+      commit();
+    }
+  }
+  function startDrag(){
+    if (!hold) return;
+    var cards = [].slice.call(list.querySelectorAll('.card'));
+    var i = cards.indexOf(hold.card);
+    if (i < 0 || cards.length < 2){ hold = null; return; }
+    var sy = window.scrollY || 0, tops = [], hs = [];
+    cards.forEach(function(c){
+      var r = c.getBoundingClientRect();
+      tops.push(r.top + sy);
+      hs.push(r.height);
+    });
+    drag = {
+      cards: cards,
+      ids: cards.map(function(c){ return c.getAttribute('data-p'); }),
+      i: i, t: i, tops: tops, hs: hs, startY: hold.y, startScroll: sy, slot: hs[i] + 10
+    };
+    lastY = hold.y;
+    hold = null;
+    cards.forEach(function(c, k){ c.classList.add(k === i ? 'drag' : 'shift'); });
+    loopScroll();
+  }
+  function onDragMove(){
+    if (!drag) return;
+    var dy = lastY - drag.startY + ((window.scrollY || 0) - drag.startScroll);
+    var center = drag.tops[drag.i] + drag.hs[drag.i] / 2 + dy;
+    drag.cards[drag.i].style.transform = 'translateY(' + dy + 'px) scale(1.02)';
+    var t = 0;
+    for (var k = 0; k < drag.tops.length; k++){
+      if (k !== drag.i && drag.tops[k] + drag.hs[k] / 2 < center) t++;
+    }
+    drag.t = t;
+    drag.cards.forEach(function(c, k){
+      if (k === drag.i) return;
+      var sh = 0;
+      if (t > drag.i && k > drag.i && k <= t) sh = -drag.slot;
+      else if (t < drag.i && k >= t && k < drag.i) sh = drag.slot;
+      c.style.transform = sh ? 'translateY(' + sh + 'px)' : '';
+    });
+  }
+  function loopScroll(){
+    if (!drag) return;
+    if (lastY < 90) window.scrollBy(0, -14);
+    else if (lastY > window.innerHeight - 110) window.scrollBy(0, 14);
+    onDragMove();
+    rafId = requestAnimationFrame(loopScroll);
+  }
+
+  list.addEventListener('pointerdown', function(ev){
+    if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+    if (ev.target.closest('button')) return;
+    var card = ev.target.closest('.card');
+    if (!card) return;
+    cancelHold();
+    hold = { card: card, x: ev.clientX, y: ev.clientY };
+    hold.timer = setTimeout(startDrag, HOLD_MS);
+  });
+  document.addEventListener('pointermove', function(ev){
+    if (drag){ lastY = ev.clientY; onDragMove(); }
+    else if (hold && Math.hypot(ev.clientX - hold.x, ev.clientY - hold.y) > 8) cancelHold();
+  });
+  document.addEventListener('pointerup', function(){ cancelHold(); endDrag(true); });
+  document.addEventListener('pointercancel', function(){ cancelHold(); endDrag(false); });
+  document.addEventListener('touchmove', function(ev){ if (drag) ev.preventDefault(); }, { passive: false });
+  window.addEventListener('scroll', function(){ if (!drag) cancelHold(); }, { passive: true });
+  list.addEventListener('contextmenu', function(ev){ if (hold || drag) ev.preventDefault(); });
+  list.addEventListener('click', function(ev){
+    if (Date.now() < suppressUntil){ ev.stopPropagation(); ev.preventDefault(); }
+  }, true);
 
   document.addEventListener('visibilitychange', tick);
   setInterval(tick, 1000);
