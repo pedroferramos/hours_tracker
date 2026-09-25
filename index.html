@@ -846,66 +846,70 @@
   $('sClose').addEventListener('click', function(){ sdlg.close(); });
   $('openArch').addEventListener('click', function(){ renderArch(); adlg.showModal(); });
 
+  function bkStatus(msg, isError){
+    var p = $('bkErr');
+    p.textContent = msg;
+    p.style.color = isError ? 'var(--danger)' : 'var(--ink)';
+    p.style.fontWeight = isError ? '400' : '600';
+  }
   function exportData(){
-   try {
-    $('bkErr').textContent = '';
+    bkStatus('');
     $('bkRaw').hidden = true;
-    var payload = { app: 'weekly-hours', version: 1, exportedAt: new Date().toISOString(), data: S };
-    var json = JSON.stringify(payload, null, 2);
-    var blob = new Blob([json], { type: 'application/json' });
-    var stamp = new Date().toISOString().slice(0, 10);
-    var fname = 'weekly-hours-backup-' + stamp + '.json';
-    var canTryShare = false;
     try {
-      var file = new File([blob], fname, { type: 'application/json' });
-      canTryShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
-    } catch (e) { canTryShare = false; }
-    if (canTryShare){
+      var payload = { app: 'weekly-hours', version: 1, exportedAt: new Date().toISOString(), data: S };
+      var json = JSON.stringify(payload, null, 2);
+      var blob = new Blob([json], { type: 'application/json' });
+      var stamp = new Date().toISOString().slice(0, 10);
+      var fname = 'weekly-hours-backup-' + stamp + '.json';
+      var canTryShare = false, file;
       try {
-        var p = navigator.share({ files: [file], title: 'Weekly hours backup' });
-        p.then(function(){ showToast('Backup shared', null); })
-         .catch(function(err){
-           if (err && err.name === 'AbortError') return;   // user closed the share sheet: not an error
-           downloadFallback(blob, fname, json);
-         });
-        return;
-      } catch (e) {
-        // some browsers throw synchronously instead of rejecting; fall through to download
+        file = new File([blob], fname, { type: 'application/json' });
+        canTryShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
+      } catch (e) { canTryShare = false; }
+      if (canTryShare){
+        try {
+          navigator.share({ files: [file], title: 'Weekly hours backup' })
+            .then(function(){ bkStatus('Shared.'); })
+            .catch(function(err){
+              if (err && err.name === 'AbortError') { bkStatus(''); return; }
+              downloadFallback(blob, fname, json);
+            });
+          return;
+        } catch (e) { /* some browsers throw sync instead of rejecting; fall through */ }
       }
+      downloadFallback(blob, fname, json);
+    } catch (e) {
+      bkStatus('Export failed unexpectedly (' + (e && e.message ? e.message : e) + ').', true);
     }
-    downloadFallback(blob, fname, json);
-   } catch (e) {
-     $('bkErr').textContent = 'Export failed unexpectedly (' + (e && e.message ? e.message : e) + ').';
-   }
   }
   function downloadFallback(blob, fname, json){
-    // A synthetic <a download> click is unreliable in an installed/standalone app on
-    // Android: it can silently do nothing. Opening the file as a real navigation
-    // uses Chrome's normal download handling instead, which is more reliable here.
-    var opened = null;
+    // The standard forced-download technique: an <a download> click. This is the
+    // most broadly supported way to save a file from the browser, including on
+    // Android. Status is shown inline in this dialog — a floating toast would be
+    // hidden behind the dialog's own top-layer backdrop while it's open.
     try {
       var url = URL.createObjectURL(blob);
-      opened = window.open(url, '_blank');
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
-    } catch (e) { opened = null; }
-    if (opened){
-      showToast('Opened “' + fname + '” — use your browser’s download button to save it', null);
-      return;
+      var a = document.createElement('a');
+      a.href = url; a.download = fname; a.rel = 'noopener'; a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ a.remove(); URL.revokeObjectURL(url); }, 4000);
+      bkStatus('Saved as “' + fname + '” — check your Downloads (swipe down from the top of the phone, or open the Files app).');
+    } catch (e) {
+      $('bkRawText').value = json;
+      $('bkRaw').hidden = false;
+      bkStatus('Couldn’t save or share a file automatically on this device.', true);
     }
-    // Last resort: nothing could be opened or shared, so show the backup as text to copy by hand.
-    $('bkRawText').value = json;
-    $('bkRaw').hidden = false;
-    $('bkErr').textContent = 'Couldn’t open or share a file automatically on this device.';
   }
   function importData(file){
-    $('bkErr').textContent = '';
+    bkStatus('');
     var reader = new FileReader();
     reader.onload = function(){
       var parsed;
-      try { parsed = JSON.parse(reader.result); } catch (e){ $('bkErr').textContent = 'That file isn’t a valid backup.'; return; }
+      try { parsed = JSON.parse(reader.result); } catch (e){ bkStatus('That file isn’t a valid backup.', true); return; }
       var payload = (parsed && parsed.app === 'weekly-hours' && parsed.data) ? parsed.data : parsed;
       if (!payload || !Array.isArray(payload.projects) || !Array.isArray(payload.entries)){
-        $('bkErr').textContent = 'That file isn’t a valid backup.';
+        bkStatus('That file isn’t a valid backup.', true);
         return;
       }
       var n = payload.projects.filter(function(p){ return p && !p.archived && !p.deleted; }).length;
@@ -916,7 +920,7 @@
       sdlg.close();
       render();
     };
-    reader.onerror = function(){ $('bkErr').textContent = 'Could not read that file.'; };
+    reader.onerror = function(){ bkStatus('Could not read that file.', true); };
     reader.readAsText(file);
   }
   $('bkRawText').addEventListener('click', function(){ this.focus(); this.select(); });
