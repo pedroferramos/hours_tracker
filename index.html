@@ -250,6 +250,11 @@
     </div>
     <label>Projects</label>
     <button type="button" class="chipbtn wide" id="openArch">Archived &amp; deleted (<span id="archCount">0</span>)</button>
+    <label>Backup</label>
+    <button type="button" class="chipbtn wide" id="doExport">Export data (save a backup file)</button>
+    <button type="button" class="chipbtn wide" id="doImport" style="margin-top:8px">Import data (restore from a file)</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+    <p class="sub" id="bkErr" style="color:var(--danger);min-height:0;margin-top:8px"></p>
     <div class="actions" style="margin-top:18px">
       <span class="sp"></span>
       <button type="button" class="btn primary" id="sClose">Done</button>
@@ -835,6 +840,51 @@
   $('wMon').addEventListener('click', function(){ setWeekStart(1); });
   $('sClose').addEventListener('click', function(){ sdlg.close(); });
   $('openArch').addEventListener('click', function(){ renderArch(); adlg.showModal(); });
+
+  function exportData(){
+    var payload = { app: 'weekly-hours', version: 1, exportedAt: new Date().toISOString(), data: S };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    var stamp = new Date().toISOString().slice(0, 10);
+    var file = new File([blob], 'weekly-hours-backup-' + stamp + '.json', { type: 'application/json' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })){
+      navigator.share({ files: [file], title: 'Weekly hours backup' }).catch(function(){});
+      return;
+    }
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+  function importData(file){
+    $('bkErr').textContent = '';
+    var reader = new FileReader();
+    reader.onload = function(){
+      var parsed;
+      try { parsed = JSON.parse(reader.result); } catch (e){ $('bkErr').textContent = 'That file isn’t a valid backup.'; return; }
+      var payload = (parsed && parsed.app === 'weekly-hours' && parsed.data) ? parsed.data : parsed;
+      if (!payload || !Array.isArray(payload.projects) || !Array.isArray(payload.entries)){
+        $('bkErr').textContent = 'That file isn’t a valid backup.';
+        return;
+      }
+      var n = payload.projects.filter(function(p){ return p && !p.archived && !p.deleted; }).length;
+      if (!window.confirm('Replace everything currently in the app with this backup (' + n + ' active project' + (n === 1 ? '' : 's') + ')? This can’t be undone.')) return;
+      S = norm(payload);
+      weekOffset = 0;
+      save();
+      sdlg.close();
+      render();
+    };
+    reader.onerror = function(){ $('bkErr').textContent = 'Could not read that file.'; };
+    reader.readAsText(file);
+  }
+  $('doExport').addEventListener('click', exportData);
+  $('doImport').addEventListener('click', function(){ $('bkErr').textContent = ''; $('importFile').click(); });
+  $('importFile').addEventListener('change', function(ev){
+    var f = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (f) importData(f);
+  });
   $('aClose').addEventListener('click', function(){ adlg.close(); });
   $('aBody').addEventListener('click', function(ev){
     var r = ev.target.closest('[data-restore]'), x = ev.target.closest('[data-purge]');
